@@ -66,7 +66,7 @@ class Ui_LCAGraphWidget(object):
         
         textFact = QLabel(self.gridLayoutWidget)
         textFact.setObjectName(u"textFactors")
-        textFact.setText("Factors")
+        textFact.setText("Impact Factors")
         font = QFont()
         font.setPointSize(12)
         textFact.setFont(font)
@@ -75,7 +75,7 @@ class Ui_LCAGraphWidget(object):
 
         textCycle = QLabel(self.gridLayoutWidget)
         textCycle.setObjectName(u"textCycles")
-        textCycle.setText("Phase Cycles")
+        textCycle.setText("Life-Cycle Phases")
         font = QFont()
         font.setPointSize(12)
         textCycle.setFont(font)
@@ -134,6 +134,7 @@ class Ui_LCAGraphWidget(object):
     # https://github.com/FreeCAD/freecad.workbench_starterkit
     
     # https://www.pythonguis.com/tutorials/pyqt6-layouts/
+    # https://doc.qt.io/qtforpython-6.5/overviews/qtwidgets-widgets-groupbox-example.html
     
     # https://www.pythonguis.com/tutorials/pyside-plotting-pyqtgraph/
     # https://www.pythonguis.com/tutorials/pyside-embed-pyqtgraph-custom-widgets/
@@ -146,5 +147,5 @@ class Ui_LCAGraphWidget(object):
     
     # https://3dpartsforyou.com/2021/07/26/how-to-install-freecad-workbenches/
     
-    #https://github.com/Hizoka76/QCheckComboBox
-    
+    # https://github.com/Hizoka76/QCheckComboBox
+    # https://pypi.org/project/qtwidgets/

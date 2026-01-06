@@ -49,7 +49,7 @@ class Bar_Graph_Class():
                     barPlot.showGrid(y=True)  # Show grid
                     #barPlot.showAxes( True, showValues=(False, False, False, False), size=10 )
                     #barPlot.getAxis('bottom').setTicks(([(j*barWidth + barWidth, fabmethod) for j, fabmethod in enumerate(data.keys())], [])) # Set X axis ticks with fabrication methods
-                    #barPlot.showAxis('bottom', False)  # Show X axis
+                    barPlot.showAxis('bottom', False)  # Show X axis
                     #barPlot.enableAutoRange('xy', True)  # Enable auto range for both axes
                     x= 1 # the label locations
                     

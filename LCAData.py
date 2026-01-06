@@ -26,18 +26,7 @@ import FreeCAD
 import Spreadsheet
 import numpy
 import re
-
-@dataclass
-class Factor:
-    name: str
-    unit: str
-    cell: int
-
-@dataclass
-class Phase:
-    name: str
-    cell: int
-
+from LCA_Datastructure import Factor, Phase, LifeCyclePhase, FactorType
 
 # Creates immutable constants to be used as Keys in dictionaries
 Keys = namedtuple('Keys', ['FACTOR', 'PHASES', 'FABMETHOD'])
@@ -98,6 +87,52 @@ def GetSpecificLCAData(impactCat_cells, phases_cells, ratio):
             tuple_LCA = (dict_labels, full_data)
             
             return tuple_LCA
+
+def GetSimplifiedLCAData(impactCat_cells, phases_cells, ratio):
+    #-------------- Get information from sheets ------------------
+    #sheet = FreeCAD.ActiveDocument.getObject('Spreadsheet')
+    if FreeCAD.ActiveDocument is not None:
+        sheets = FreeCAD.ActiveDocument.findObjects(Type="Spreadsheet::Sheet") # Order should be: conventional then laser
+        if sheets:
+            label_factor_unit = [(cell,FactorType(cell).name,sheets[0].get('B'+str(cell))) for cell in impactCat_cells] # Returns list with ([factor, unit],...)
+            #label_phases = [name for name in dir(LifeCyclePhase) if not name.startswith('_')]
+            label_phases = []
+            for phase in phases_cells:
+                label_phases.append(LifeCyclePhase(phase).name)            
+            label_fabmethod = []
+            for sheet in sheets:
+                label_fabmethod.append(sheet.Label) # Gets the fabrication method from the sheet label        
+                
+            # Dictionary with the labels to be shown on the graph
+            dict_labels = {keys.FACTOR: label_factor_unit, keys.PHASES: label_phases, keys.FABMETHOD: label_fabmethod}
+            
+            # Dictionary with cell data for a specific fabrication method
+            full_data = {}
+            
+            for line in impactCat_cells:
+                method_data = {}
+                
+                FactList = FactorType(line).getValues() # Gets the list of factor line numbers to get data from
+                
+                for sheet in sheets:
+                    data = []
+                    for cell in phases_cells:
+                        value = 0
+                        for fact in FactList:
+                            value += NotNumber(sheet.cells[cell+str(fact)]) # Gets the main factor value
+
+                        data.append(value * ratio) # multiplies the value of the cell by the the area ratio, Assuming the LCA data is for the full part
+                    
+                    method_data[sheet.Label] = data
+                                    
+                full_data[line] = method_data
+            
+            # Tupple with the labels and cell data
+            tuple_LCA = (dict_labels, full_data)
+            
+            return tuple_LCA
+            
+                
 
 def GetNormalizedData(full_data):
 

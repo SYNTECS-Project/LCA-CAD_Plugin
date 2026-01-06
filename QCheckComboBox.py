@@ -795,6 +795,11 @@ class QCheckComboBox(QComboBox):
 
     #========================================================================
     def setDefaultValues(self, State, Values, CaseSensitive=False):
+        self.DefaultValues = {
+            Qt.Checked: [],
+            Qt.PartiallyChecked: []
+            }
+        
         """Fonction prenant les valeurs par défaut."""
         # Bloque la fonction s'il n'y a pas encore de choix, elle sera rappelée plus tard
         if self.model().rowCount() == 0 or (self.model().rowCount() == 1 and self.TitleExists):

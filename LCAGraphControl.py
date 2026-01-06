@@ -33,13 +33,16 @@ from PySide.QtCore import QSize
 from PySide.QtGui import QScrollArea
 import pyqtgraph as pqg
 
-
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from collections import namedtuple
 from xlrd.formula import colname
+from LCA_Datastructure import FactorType, LifeCyclePhase
 import LCAData
 import PlotGraph as PG
-import RadarGraph as RG
+import StakedBarPlots as SP
+#import RadarGraph as RG
+
+
 
 # Creates immutable constants to be used as Keys in dictionaries
 Keys = namedtuple('Keys', ['FACTOR', 'PHASES', 'FABMETHOD'])
@@ -57,66 +60,77 @@ class LCA_Graph_Control_Class():
         #LCAFreeCADWidget = QtGui.QWidget() create a floating widget
         self.LCAWidget.ui = Ui_LCAGraphWidget() # load the Ui script
         self.LCAWidget.ui.setupUi(self.LCAWidget) # setup the ui
-
-        labels = LCAData.GetLCALabels()
-        if labels:
-            factors = labels[keys.FACTOR]
-            for x in range(len(factors)):
-                row = x+3
-                self.LCAWidget.ui.comboFactor.addItem(factors[x],str(row))
-            phases = labels[keys.PHASES]
-            for x in range(len(phases)):
-                self.LCAWidget.ui.comboCycles.addItem(phases[x],colname(x+2))
-            #These are the default values
-            self.LCAWidget.ui.comboFactor.setDefaultValues(QtCore.Qt.Checked,(0,12,13,15))
-            self.LCAWidget.ui.comboFactor.resetDefaultValues()
-            self.LCAWidget.ui.comboCycles.setDefaultValues(QtCore.Qt.Checked,0)
-            self.LCAWidget.ui.comboCycles.resetDefaultValues()
+        
+        self.LCAWidget.ui.profileToggle.stateChanged.connect(self.toggleStateChanged)
+        
+        self.SetComboBoxValues(self.LCAWidget.ui.profileToggle.isChecked())
 
         self.FreeCADWindow.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.LCAWidget) # add the widget to the main window
 
     def GetResources(self):
-        return {"Pixmap"  : "lca_logo", # the name of a svg file available in the resources
+        return {"Pixmap"  : "lca_logo.svg", # the name of a svg file available in the resources
                 "MenuText": "LCA Graph",
                 "ToolTip" : "Show the graph of the LCA data"}
 
     def Activated(self): 
+        # Call GetSelectedArea() to get the ratio of selected area
+        selection_ratio = self.GetSelectedArea()
+            
         # Get from user the LCA information to show 
         impact_category = self.LCAWidget.ui.comboFactor.currentData()
         impact_category = list(map(int,impact_category))
         #impact_category = [3,15,16,18] # The line number for impact category and unit type is always the same
         cycle_phases =  self.LCAWidget.ui.comboCycles.currentData() # The collumns for the cycle phases to get data from
-        
-        #categories = ['A' + str(category) for category in impact_category] # Adds the collumn letter for the impact category
-        #units = ['B' + str(type) for type in impact_category] # Adds the collumn letter for the unit type
-        #phases = [phase + '2' for phase in cycle_phases] # Add the line number, since the phase cycle is always the second line in the spreadsheets
-        #data_cells = dict([(cat, cycle_phases) for cat in impact_category]) # Gets the cycle phases collumns and the impact category lines joines them to get the data form those specific data cells
-        
-        # Call GetSelectedArea() to get the ratio of selected area
-        selection_ratio = self.GetSelectedArea()
-        
-        # Call GetSpecificLCAData() to get the data to populate the graph
-        graphLCA_Data = LCAData.GetSpecificLCAData(impact_category, cycle_phases, selection_ratio)
-
-        if not graphLCA_Data:
-            self.LCAWidget.ui.textInfo.setText('No LCA spreadsheet found') # Changes the text in the label 
-            self.LCAWidget.ui.graphWidget.clear() # Clears previous graph if any
-        else: 
-            # Checks how many phases there are, if there's less than 3 then show a Bar plot.
-            labels_Dict = graphLCA_Data[0] # Gets labels dictionary 
-            spoke_labels = labels_Dict[keys.PHASES]
-            num_vertices = len(spoke_labels)
+                
+        if self.LCAWidget.ui.profileToggle.isChecked(): # Expert profile    
+            #categories = ['A' + str(category) for category in impact_category] # Adds the collumn letter for the impact category
+            #units = ['B' + str(type) for type in impact_category] # Adds the collumn letter for the unit type
+            #phases = [phase + '2' for phase in cycle_phases] # Add the line number, since the phase cycle is always the second line in the spreadsheets
+            #data_cells = dict([(cat, cycle_phases) for cat in impact_category]) # Gets the cycle phases collumns and the impact category lines joines them to get the data form those specific data cells
             
-            self.LCAWidget.ui.textInfo.setText('') # Changes the text in the label 
-            self.LCAWidget.ui.graphWidget.clear() # Clears previous graph if any
-            self.LCAWidget.ui.graphWidget.sizeAdjustPolicy = QScrollArea.SizeAdjustPolicy.AdjustToContents
-            
-            #if num_vertices < 4:
-            # Call CreateBarGraphPlot() to create the bar plot graph from the LCA data   
-            canvas = PG.Bar_Graph_Class.CreateBarGraphPlot(graphLCA_Data, self.LCAWidget.ui.graphWidget)
-            #else:
-            #    canvas = RG.CreateRadarGraphPlot(graphLCA_Data)
+            # Call GetSpecificLCAData() to get the data to populate the graph
+            graphLCA_Data = LCAData.GetSpecificLCAData(impact_category, cycle_phases, selection_ratio)
 
+            if not graphLCA_Data:
+                self.LCAWidget.ui.textInfo.setText('No LCA spreadsheet found') # Changes the text in the label 
+                self.LCAWidget.ui.graphWidget.clear() # Clears previous graph if any
+            else: 
+                # Checks how many phases there are, if there's less than 3 then show a Bar plot.
+                labels_Dict = graphLCA_Data[0] # Gets labels dictionary 
+                spoke_labels = labels_Dict[keys.PHASES]
+                num_vertices = len(spoke_labels)
+                
+                self.LCAWidget.ui.textInfo.setText('') # Changes the text in the label 
+                self.LCAWidget.ui.graphWidget.clear() # Clears previous graph if any
+                self.LCAWidget.ui.graphWidget.sizeAdjustPolicy = QScrollArea.SizeAdjustPolicy.AdjustToContents
+                
+                #if num_vertices < 4:
+                # Call CreateBarGraphPlot() to create the bar plot graph from the LCA data   
+                canvas = PG.Bar_Graph_Class.CreateBarGraphPlot(graphLCA_Data, self.LCAWidget.ui.graphWidget)
+                #else:
+                #    canvas = RG.CreateRadarGraphPlot(graphLCA_Data)
+        
+        else: # Designer profile
+            #for cat in impact_category:
+            #    if FactorType(cat): # Validates if the selected impact category exists
+            #        factors.extend(FactorType(cat).getValues())
+            
+            if not LifeCyclePhase.OVERALL.value in cycle_phases:
+                cycle_phases = [LifeCyclePhase.OVERALL.value] + cycle_phases
+                
+            # Call GetSpecificLCAData() to get the data to populate the graph
+            graphLCA_Data = LCAData.GetSimplifiedLCAData(impact_category, cycle_phases, selection_ratio)
+            
+            if not graphLCA_Data:
+                self.LCAWidget.ui.textInfo.setText('No LCA spreadsheet found') # Changes the text in the label 
+                self.LCAWidget.ui.graphWidget.clear() # Clears previous graph if any
+            else:
+                self.LCAWidget.ui.textInfo.setText('') # Changes the text in the label 
+                self.LCAWidget.ui.graphWidget.clear() # Clears previous graph if any
+                self.LCAWidget.ui.graphWidget.sizeAdjustPolicy = QScrollArea.SizeAdjustPolicy.AdjustToContents
+
+                canvas = SP.StakedBar_Graph_Class.CreateStakedBarGraphPlot(graphLCA_Data, self.LCAWidget.ui.graphWidget)
+            
         #------------------------------------------------------------------
         
         self.LCAWidget.show()
@@ -151,6 +165,39 @@ class LCA_Graph_Control_Class():
 
         print("RATIO: "+ str(ratio))
         return ratio
+    
+    def toggleStateChanged(self, state):
+        self.SetComboBoxValues(state)    
+    
+    def SetComboBoxValues(self, value):
+        self.LCAWidget.ui.comboFactor.clear()
+        self.LCAWidget.ui.comboCycles.clear()
+        
+        if value: # Expert profile
+            labels = LCAData.GetLCALabels()
+            if labels:
+                factors = labels[keys.FACTOR]
+                for x in range(len(factors)):
+                    row = x+3
+                    self.LCAWidget.ui.comboFactor.addItem(factors[x],str(row))
+                phases = labels[keys.PHASES]
+                for y in range(len(phases)):
+                    self.LCAWidget.ui.comboCycles.addItem(phases[y],colname(y+2))            
+                #These are the default values for the expert profile
+                self.LCAWidget.ui.comboFactor.setDefaultValues(QtCore.Qt.Checked,(0,12,13,15))
+                self.LCAWidget.ui.comboCycles.setDefaultValues(QtCore.Qt.Checked,0)
+        else: # Designer profile
+            for fct in FactorType:
+                self.LCAWidget.ui.comboFactor.addItem(str(fct),fct.value)            
+            for phs in LifeCyclePhase:
+                self.LCAWidget.ui.comboCycles.addItem(str(phs),phs.value)
+            # These are the default values for the designer profile
+            self.LCAWidget.ui.comboFactor.setDefaultValues(QtCore.Qt.Checked,(0,11))
+            self.LCAWidget.ui.comboCycles.setDefaultValues(QtCore.Qt.Checked,0)
+        
+        self.LCAWidget.ui.comboFactor.resetDefaultValues()
+        self.LCAWidget.ui.comboCycles.resetDefaultValues()
+            
    
 FreeCADGui.addCommand("LCA Graph", LCA_Graph_Control_Class())
 
