@@ -3,6 +3,7 @@ LCA workbench for the FreeCAD software, that enables uploading LCA results and p
 
 # Running requirements
 Install pyqtgraph into the FreeCAD python lib:
+  Windows: C:\Program Files\FreeCAD 1.0\bin\Lib\site-packages\
   Windows: %APPDATA%\Roaming\Python\Python311\site-packages\
 If following packages are not installed automatically, install them using pip:
   'matplotlib', 'numpy', 'xlrd', 'collections','qtwidgets', 'qtpy', 'pyqtgraph'
