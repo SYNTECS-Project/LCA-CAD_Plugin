@@ -16,4 +16,4 @@ Download repository to local drive then copy workbench folder into the following
 # Funding
 This project was funded by SYNTECS project (HORIZON-CL4-2022-TWIN-TRANSITION-01-02, Grant agreement ID: 101091514) and grant from LARSyS (DOI 10.54499/UIDB/50009/2020).
 
-<img width="4125" height="919" alt="EN_FundedbytheEU_RGB_NEG" src="https://github.com/user-attachments/assets/bd51281d-10a1-46c8-a0df-97b689e2a5bd" />
+<img width="600" height="134" alt="EN_FundedbytheEU_RGB_NEG" src="https://github.com/user-attachments/assets/bd51281d-10a1-46c8-a0df-97b689e2a5bd" />
